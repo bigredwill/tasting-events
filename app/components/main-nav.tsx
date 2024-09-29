@@ -119,7 +119,7 @@ export function MainNav({}: React.HTMLAttributes<HTMLElement>) {
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <Link to='/logout'><DropdownMenuItem>Logout</DropdownMenuItem></Link>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
