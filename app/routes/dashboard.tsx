@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import {
   Activity,
   ArrowUpRight,
@@ -22,16 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
 import {
   Table,
   TableBody,
@@ -49,7 +40,28 @@ export const description = "";
 
 export const containerClassName = "w-full h-full";
 
-export default function Dashboard() {
+export let clientLoader: LoaderFunction = async ({ request }) => {
+  try {
+    const user = await pb
+      .collection("users")
+      .getOne(pb?.authStore?.model.id, {});
+    const events = await pb.collection("Event").getList(1, 20, {
+      filter: `id = "${user.events}"`,
+    });
+    console.log("loader", events);
+    return {
+      user,
+      events,
+    };
+  } catch (e) {
+    console.error(e);
+    return {};
+  }
+};
+
+export default function Dashboard(props) {
+  const loaderData = useLoaderData();
+  console.log(loaderData);
   return (
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -101,33 +113,29 @@ export default function Dashboard() {
                     <TableHead className="hidden xl:table-column">
                       Status
                     </TableHead>
-                    <TableHead className="hidden xl:table-column">
-                      Amount
-                    </TableHead>
                     <TableHead className="text-right">Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <div className="font-medium">Mezcal Tasting</div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        5678 Broadway, New York, NY 10036
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden xl:table-column">
-                      Sale
-                    </TableCell>
-                    <TableCell className="hidden xl:table-column">
-                      <Badge className="text-xs" variant="outline">
-                        Approved
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
-                      2023-06-23
-                    </TableCell>
-                    <TableCell className="text-right">2024-12-20</TableCell>
-                  </TableRow>
+                  {loaderData.events.items.map((event) => (
+                    <TableRow key={event.id}>
+                      <TableCell>
+                        <div className="font-medium">{event.name}</div>
+                        <div className="hidden text-sm text-muted-foreground md:inline">
+                          {event.location}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-column">
+                        {event.type}
+                      </TableCell>
+                      <TableCell className="hidden xl:table-column">
+                        <Badge className="text-xs" variant="outline">
+                          {event.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">{event.date}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
