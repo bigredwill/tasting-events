@@ -12,14 +12,14 @@ export let loader: LoaderFunction = async ({ request }) => {
   return json({});
 };
 
-export let action: ActionFunction = async ({ request }) => {
+export let clientAction: ActionFunction = async ({ request }) => {
   let formData = await request.formData();
   let email = formData.get("email") || '';
   let password = formData.get("password") || '';
 
   const authData = await pb.collection('users').authWithPassword(email, password);
 
-  if (authData.token) {
+  if (pb.authStore.isValid) {
     return redirect("/dashboard");
   }
 

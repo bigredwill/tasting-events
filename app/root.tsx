@@ -17,15 +17,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <header>
-          <div className="flex-col md:flex">
-            <div className="border-b">
-              <div className="flex h-16 items-center px-4">
-                <MainNav className="mx-6" />
-              </div>
-            </div>
-          </div>
-        </header>
+        <MainNav className="mx-6" />
         <Outlet />
 
         <Scripts />
