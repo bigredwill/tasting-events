@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import pb from '@/lib/pocketbase';
 
 export let loader: LoaderFunction = async ({ request }) => {
   // Add any loader logic here if needed
@@ -13,11 +14,12 @@ export let loader: LoaderFunction = async ({ request }) => {
 
 export let action: ActionFunction = async ({ request }) => {
   let formData = await request.formData();
-  let email = formData.get("email");
-  let password = formData.get("password");
+  let email = formData.get("email") || '';
+  let password = formData.get("password") || '';
 
-  // Add your authentication logic here
-  if (email === "test@example.com" && password === "password") {
+  const authData = await pb.collection('users').authWithPassword(email, password);
+
+  if (authData.token) {
     return redirect("/dashboard");
   }
 
