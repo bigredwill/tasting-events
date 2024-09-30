@@ -36,22 +36,21 @@ import pb from "@/lib/pocketbase";
 
 export const description = "";
 
-// export const iframeHeight = "825px"
-
-export const containerClassName = "w-full h-full";
-
-export let clientLoader: LoaderFunction = async ({ request }) => {
+export let clientLoader: LoaderFunction = async ({ params }) => {
   try {
     const user = await pb
       .collection("users")
       .getOne(pb?.authStore?.model.id, {});
-    const events = await pb.collection("Event").getList(1, 20, {
+    const userEvents = await pb.collection("Event").getList(1, 20, {
       filter: `id = "${user.events}"`,
     });
-    console.log("loader", events);
+
+    // filter by future date
+    const publicEvents = await pb.collection("Event").getList(1, 20, {});
     return {
       user,
-      events,
+      userEvents,
+      publicEvents,
     };
   } catch (e) {
     console.error(e);
@@ -59,30 +58,12 @@ export let clientLoader: LoaderFunction = async ({ request }) => {
   }
 };
 
-export default function Dashboard(props) {
+export default function Event(props) {
   const loaderData = useLoaderData();
   console.log(loaderData);
   return (
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Card x-chunk="A card showing the total revenue in USD and the percentage difference from last month.">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Next Event</CardTitle>
-              <Martini className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">Mezcal Tasting</div>
-              <p className="text-xs text-muted-foreground">
-                {`In ${Math.ceil(
-                  (new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).getTime() -
-                    Date.now()) /
-                    (24 * 60 * 60 * 1000)
-                )} days`}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <Card
             className="xl:col-span-2"
@@ -118,11 +99,7 @@ export default function Dashboard(props) {
                 </TableHeader>
                 <TableBody>
                   {loaderData.events.items.map((event) => (
-                    <Link 
-                      to={`/event/${event.id}`} 
-                      key={event.id} 
-                      className="flex table-row cursor-pointer hover:bg-gray-100"
-                    >
+                    <TableRow key={event.id}>
                       <TableCell>
                         <div className="font-medium">{event.name}</div>
                         <div className="hidden text-sm text-muted-foreground md:inline">
@@ -137,36 +114,11 @@ export default function Dashboard(props) {
                           {event.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {event.date}
-                      </TableCell>
-                    </Link>
+                      <TableCell className="text-right">{event.date}</TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-          <Card x-chunk="A card showing a list of recent sales with customer names and email addresses.">
-            <CardHeader>
-              <CardTitle>Recent Favorites</CardTitle>
-              <CardDescription>
-                Notable products you've liked at events.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-8">
-              <div className="flex items-center gap-4">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <AvatarImage src="/avatars/01.png" alt="Avatar" />
-                  <AvatarFallback>WM</AvatarFallback>
-                </Avatar>
-                <div className="grid gap-1">
-                  <p className="text-sm font-medium leading-none">
-                    Wahaka Mezcal Espadín
-                  </p>
-                  <p className="text-sm text-muted-foreground">Wahaka Mezcal</p>
-                </div>
-                <div className="ml-auto font-medium">$40</div>
-              </div>
             </CardContent>
           </Card>
         </div>
